@@ -70,6 +70,8 @@ for section in sections:
 
 This code does the same thing as the CLI command above, but in Python.
 
+- **[See the API documentation](API.md)** for more advanced usage
+
 ## How it Works
 
 `split_markdown4gpt` works by tokenizing the input Markdown file using the specified GPT model's tokenizer (default is `gpt-3.5-turbo`). It then splits the file into sections, each containing no more than the specified token limit.
@@ -96,29 +98,6 @@ The tool uses several libraries to accomplish this:
 - **Data Preprocessing**: In machine learning projects, you often need to preprocess your data before feeding it into your model. If your data is in the form of large Markdown files, `split_markdown4gpt` can help you split these files into smaller sections based on the token limit of your model.
 
 - **Document Analysis**: If you're analyzing large Markdown documents (e.g., extracting keywords, summarizing content), you can use `split_markdown4gpt` to break down the documents into smaller sections. This makes the analysis more manageable and efficient.
-
-### Usage Examples
-
-Here's an example of how you can use `split_markdown4gpt` in your Python code:
-
-```python
-from split_markdown4gpt import split
-
-# Path to your large Markdown file
-md_file_path = "path_to_your_file.md"
-
-# Split the file into sections
-sections = split(md_file_path, model="gpt-3.5-turbo", limit=4096)
-
-# Process each section with your GPT model
-for section in sections:
-    # Replace this with your GPT model's processing function
-    process_with_gpt_model(section)
-```
-
-In this example, `process_with_gpt_model` is a placeholder for your GPT model's processing function. You would replace this with the actual function you're using to process the text with your GPT model.
-
-- [See the API documentation](API.md)
 
 ## Contributing
 
