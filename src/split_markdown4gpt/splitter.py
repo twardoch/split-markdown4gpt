@@ -33,6 +33,24 @@ Section = namedtuple("Section", ("md", "size"))
 
 
 class MarkdownLLMSplitter:
+    """
+    A class to split Markdown files into sections according to GPT token size limits.
+    
+    Attributes:
+        gptoker: GPT tokenizer instance used to calculate token sizes.
+        gptok_limit: The maximum number of GPT tokens allowed per section.
+        md_meta: Metadata found in the source Markdown file.
+        md_str: The source Markdown string.
+        md_doc: The parsed source Markdown document as a mistletoe Document instance.
+        md_dict: A dictionary representing the structure of the Markdown document.
+        md_path: The absolute path to the source Markdown file.
+        md_sections: List of sections (named tuples) containing the Markdown content and its size in tokens.
+
+    Args:
+        gptok_model: The GPT tokenizer model to use for calculating token sizes, defaults to "gpt-3.5-turbo".
+        gptok_limit: The maximum number of GPT tokens allowed per section, defaults to the model's maximum tokens.
+    """
+
     def __init__(
         self, gptok_model: str = "gpt-3.5-turbo", gptok_limit: int = None
     ) -> None:
@@ -46,20 +64,44 @@ class MarkdownLLMSplitter:
         self.md_sections = []
 
     def load_md_path(self, md_path: Union[Path, str]) -> None:
+        """
+        Load a Markdown file from a file path.
+
+        Args:
+            md_path: The file path to the source Markdown file.
+        """
         self.md_path = Path(md_path).resolve()
         with open(self.md_path, "r") as md_file:
             self.load_md_file(md_file)
 
     def load_md_file(self, md_file: TextIOWrapper) -> None:
+        """
+        Load a Markdown file from a file-like object.
+
+        Args:
+            md_file: The file-like object containing the source Markdown content.
+        """
         file_content = md_file.read()
         parsed = frontmatter.loads(file_content)
         self.md_meta = parsed.metadata
         self.md_str = parsed.content
 
     def load_md_str(self, md_str: str) -> None:
+        """
+        Load a Markdown file from a string.
+
+        Args:
+            md_str: The source Markdown content as a string.
+        """
         self.md_str = md_str
 
     def load_md(self, md: Union[str, Path, TextIOWrapper]) -> None:
+        """
+        Load a Markdown file from a string, file path, or file-like object.
+
+        Args:
+            md: The source Markdown content, can be a string, file path or file-like object.
+        """
         if hasattr(md, "read"):
             self.load_md_file(md)
         elif isinstance(md, Path):
@@ -71,9 +113,21 @@ class MarkdownLLMSplitter:
 
     @lru_cache(maxsize=None)
     def gpttok_size(self, text: str) -> int:
+        """
+        Calculates the number of GPT tokens in a text string.
+
+        Args:
+            text: The text string to calculate the token size.
+
+        Returns:
+            The number of GPT tokens in the text string.
+        """
         return len(list(self.gptoker.encode(text)))
 
     def build_md_dict(self) -> None:
+        """
+        Builds a dictionary representing the structure of the source Markdown document.
+        """
         self.md_doc = Document(self.md_str)
         current_level = 0
         current_dict = self.md_dict
@@ -101,6 +155,15 @@ class MarkdownLLMSplitter:
                 current_dict[current_level].append(fragment_dict)
 
     def calculate_sizes(self, md_dict: Dict) -> int:
+        """
+        Recursively calculates the total size of GPT tokens in the provided Markdown dictionary.
+
+        Args:
+            md_dict: The Markdown dictionary to calculate token sizes.
+
+        Returns:
+            The total number of GPT tokens in the Markdown dictionary.
+        """
         total_size = 0
         for key, value in md_dict.items():
             if isinstance(value, list):
@@ -119,6 +182,18 @@ class MarkdownLLMSplitter:
         current_size: int,
         md_sections: List[Section],
     ) -> Tuple[List[str], int]:
+        """
+        Processes an item in the Markdown dictionary and adds it to the appropriate section.
+
+        Args:
+            item: The Markdown item to process.
+            current_section: The current section being built as a list of strings.
+            current_size: The current size of the section in GPT tokens.
+            md_sections: The list of sections (named tuples) being built.
+
+        Returns:
+            A tuple containing the updated current_section and the current_size.
+        """
         if "children" in item:
             for child in item["children"].values():
                 for subitem in child:
@@ -132,6 +207,16 @@ class MarkdownLLMSplitter:
         return current_section, current_size
 
     def prep_section(self, section_text: str, size: int = None) -> Section:
+        """
+        Prepares a section by removing excessive newlines and calculating the section size if not provided.
+
+        Args:
+            section_text: The Markdown content of the section.
+            size: The size of the section in GPT tokens, defaults to None (automatically calculated).
+
+        Returns:
+            A Section named tuple containing the prepared Markdown content and its size in tokens.
+        """
         if not size:
             size = self.gpttok_size(section_text)
         return Section(RE_NEWLINES.sub("\n\n", section_text), size)
@@ -143,6 +228,18 @@ class MarkdownLLMSplitter:
         current_size: int,
         md_sections: List[Section],
     ) -> Tuple[List[str], int]:
+        """
+        Processes a Markdown item and adds it to the appropriate section.
+
+        Args:
+            item: The Markdown item to process.
+            current_section: The current section being built as a list of strings.
+            current_size: The current size of the section in GPT tokens.
+            md_sections: The list of sections (named tuples) being built.
+
+        Returns:
+            A tuple containing the updated current_section and the current_size.
+        """
         if item["size"] > self.gptok_limit:
             for syntok_paragraph in syntok_analyze(item["md"]):
                 for syntok_sentence in syntok_paragraph:
@@ -159,7 +256,7 @@ class MarkdownLLMSplitter:
                     else:
                         md_sections.append(
                             self.prep_section("".join(current_section), current_size)
-                        )
+)
                         current_section = [sentence]
                         current_size = sentence_size
                 current_section.append("\n\n")
@@ -175,6 +272,15 @@ class MarkdownLLMSplitter:
         return current_section, current_size
 
     def get_sections_from_md_dict_by_limit(self, md_dict: Dict) -> List[Section]:
+        """
+        Builds the sections from the provided Markdown dictionary by fitting the content within token limits.
+
+        Args:
+            md_dict: The Markdown dictionary to build sections from.
+
+        Returns:
+            A list of sections (named tuples) containing the Markdown content and its size in tokens.
+        """
         md_sections = []
         current_section = []
         current_size = 0
@@ -193,48 +299,73 @@ class MarkdownLLMSplitter:
         return md_sections
 
     def build(self) -> None:
+        """
+        Builds the sections by processing the loaded Markdown document.
+        """
         self.build_md_dict()
         self.calculate_sizes(self.md_dict)
         self.md_sections = self.get_sections_from_md_dict_by_limit(md_dict=self.md_dict)
 
     def list_section_dicts(self) -> List[Dict[str, Union[str, int]]]:
+        """
+        Returns a list of section dictionaries containing the Markdown content and its size.
+
+        Returns:
+            A list of dictionaries with keys 'md' and 'size'.
+        """
         return list(self.gen_section_dicts())
 
     def gen_section_dicts(self) -> Generator[Dict[str, Union[str, int]], None, None]:
+        """
+        Generator that yields section dictionaries containing the Markdown content and its size.
+        """
         return (
             {"md": section.md, "size": section.size} for section in self.md_sections
         )
 
     def list_section_texts(self) -> List[str]:
+        """
+        Returns a list of section texts containing the Markdown content.
+
+        Returns:
+            A list of strings with the Markdown content of each section.
+        """
         return list(self.gen_section_texts())
 
     def gen_section_texts(self) -> Generator[str, None, None]:
+        """
+        Generator that yields the Markdown content of each section.
+        """
         return (section.md for section in self.md_sections)
 
-    def summarize(self):
-        for section in self.md_sections:
-            section_size = self.gpttok_size(section)
-            original_summary = summarize_markdown(markdown=section).replace(
-                "[NEW SUMMARY:] ", ""
-            )
-            original_summary_size = self.gpttok_size(original_summary)
-            percentage = int(original_summary_size / section_size * 100)
-            reviewed_summary = review_summary_of_reference_markdown(
-                provided_summary=original_summary, reference_markdown=section
-            ).replace("[NEW SUMMARY:] ", "")
-            print(
-                f"""\n\n<!-- {original_summary_size} / {section_size} = {percentage}% {original_summary} -->\n"""
-            )
-            print(f"""\n??? optional-class "Summary">""")
-            for line in reviewed_summary.splitlines():
-                print(f"""    {line}""")
-            print(f"\n{section}\n")
-
     def split(self, md: Union[str, Path, TextIOWrapper]) -> List[str]:
+        """
+        Splits the loaded Markdown document into sections according to the GPT token size limits.
+
+        Args:
+            md: The source Markdown content, can be a string, file path or file-like object.
+
+        Returns:
+            A list of strings with the Markdown content of each section.
+        """
         self.load_md(md)
         self.build()
         return self.list_section_texts()
 
-def split(md: Union[str, Path, TextIOWrapper], model: str = "gpt-3.5-turbo", limit: int = None) -> List[str]:
+
+def split(
+    md: Union[str, Path, TextIOWrapper], model: str = "gpt-3.5-turbo", limit: int = None
+) -> List[str]:
+    """
+    A utility function to split a Markdown document into sections according to GPT token size limits.
+
+    Args:
+        md: The source Markdown content, can be a string, file path or file-like object.
+        model: The GPT tokenizer model to use for calculating token sizes, defaults to "gpt-3.5-turbo".
+        limit: The maximum number of GPT tokens allowed per section, defaults to the model's maximum tokens.
+
+    Returns:
+        A list of strings with the Markdown content of each section.
+    """
     md_splitter = MarkdownLLMSplitter(gptok_model=model, gptok_limit=limit)
     return md_splitter.split(md)
