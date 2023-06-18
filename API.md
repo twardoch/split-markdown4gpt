@@ -14,7 +14,7 @@
 class MarkdownLLMSplitter()
 ```
 
-A class to split Markdown files into sections according to GPT token size limits.
+A class to split Markdown files into sections according to GPT token size limits. Currently supports OpenAI models only, since it uses the `tiktoken` library for tokenization.
 
 Attributes:
     gptoker: GPT tokenizer instance used to calculate token sizes.
