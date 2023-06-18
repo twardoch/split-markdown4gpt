@@ -1,0 +1,6 @@
+loaders:
+  - type: python
+processors:
+  - type: filter
+renderer:
+  type: markdown
