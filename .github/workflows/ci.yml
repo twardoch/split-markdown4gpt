@@ -59,31 +59,20 @@ jobs:
           password: ${{ secrets.PYPI_TOKEN }}
 
   update-docs:
+    needs: test
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0  # Important: This makes the commit history available to the job
-
+      - uses: actions/checkout@v2
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.10'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pydoc-markdown
-
+      - name: Install pydoc-markdown
+        run: pip install pydoc-markdown
       - name: Generate API documentation
-        run: |
-          pydoc-markdown > API.md
-
-      - name: Commit and push if it changed
-        run: |
-          git diff
-          git config --global user.email "actions@github.com"
-          git config --global user.name "GitHub Action"
-          git commit -am "Update API documentation" || exit 0  # exit gracefully if no changes to commit
-          git push
+        run: pydoc-markdown > API.md
+      - name: Commit and push if it's changed
+        uses: EndBug/add-and-commit@v9
+        with:
+          message: 'Update API documentation'
+        add: 'API.md'
