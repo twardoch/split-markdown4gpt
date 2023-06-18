@@ -118,13 +118,15 @@ for section in sections:
 
 In this example, `process_with_gpt_model` is a placeholder for your GPT model's processing function. You would replace this with the actual function you're using to process the text with your GPT model.
 
+- [See the API documentation](API.md)
+
 ## Contributing
 
 Contributions to `split_markdown4gpt` are welcome! Please open an issue or submit a pull request on the [GitHub repository](https://github.com/twardoch/split-markdown4gpt).
 
 ## License
 
-- Copyright (c) 2023 Adam Twardoch
+- Copyright (c) 2023 [Adam Twardoch](./AUTHORS.md)
 - Written with assistance from ChatGPT
 - Licensed under the [Apache License 2.0](./LICENSE.txt)<a id="split_markdown4gpt"></a>
 
