@@ -237,4 +237,4 @@ class MarkdownLLMSplitter:
 
 def split(md: Union[str, Path, TextIOWrapper], model: str = "gpt-3.5-turbo", limit: int = None) -> List[str]:
     md_splitter = MarkdownLLMSplitter(gptok_model=model, gptok_limit=limit)
-    return splitter.split(md)
+    return md_splitter.split(md)
