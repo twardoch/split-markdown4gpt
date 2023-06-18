@@ -10,7 +10,7 @@ on:
     - cron: '0 0 1,16 * *'
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: >-
@@ -36,6 +36,25 @@ jobs:
       - name: Run tests
         run: pytest
 
+  update-docs:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
+      - name: Install pydoc-markdown
+        run: pip install pydoc-markdown
+      - name: Generate API documentation
+        run: pydoc-markdown > API.md
+      - name: Commit and push if it's changed
+        uses: EndBug/add-and-commit@v9
+        with:
+          message: 'Update API documentation'
+          add: 'API.md'
+      
   build-and-publish:
     needs: test
     runs-on: ubuntu-latest
@@ -58,23 +77,4 @@ jobs:
           user: __token__
           password: ${{ secrets.PYPI_TOKEN }}
 
-  update-docs:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.10'
-      - name: Install pydoc-markdown
-        run: pip install pydoc-markdown
-      - name: Generate API documentation
-        run: pydoc-markdown > API.md
-      - name: Commit and push if it's changed
-        uses: EndBug/add-and-commit@v9
-        with:
-          message: 'Update API documentation'
-          add: 'API.md'
 
-          
