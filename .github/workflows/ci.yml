@@ -78,7 +78,7 @@ jobs:
 
       - name: Generate API documentation
         run: |
-          python3 -m pydoc_markdown > API.md
+          pydoc-markdown > API.md
 
       - name: Commit and push if it changed
         run: |

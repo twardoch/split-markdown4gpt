@@ -34,7 +34,7 @@ Section = namedtuple("Section", ("md", "size"))
 
 class MarkdownLLMSplitter:
     """
-    A class to split Markdown files into sections according to GPT token size limits.
+    A class to split Markdown files into sections according to GPT token size limits. Currently supports OpenAI models only (it uses the `tiktoken` library for tokenization).
     
     Attributes:
         gptoker: GPT tokenizer instance used to calculate token sizes.
