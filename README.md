@@ -2,7 +2,7 @@
 
 `split_markdown4gpt` is a Python tool designed to split large Markdown files into smaller sections based on a specified token limit. This is particularly useful for processing large Markdown files with GPT models, as it allows the models to handle the data in manageable chunks.
 
-_**Version 1.0.7** (2023-06-19)_
+_**Version 1.0.9** (2023-06-19)_
 
 ## Installation
 
