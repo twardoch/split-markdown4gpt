@@ -24,7 +24,7 @@ Attributes:
     md_doc: The parsed source Markdown document as a mistletoe Document instance.
     md_dict: A dictionary representing the structure of the Markdown document.
     md_path: The absolute path to the source Markdown file.
-    md_sections: List of sections (named tuples) containing the Markdown content and its size in tokens.
+    md_sections: List of sections (dicts) containing the Markdown content as "md" and its size in tokens as "gptok_size".
 
 Args:
     gptok_model: The GPT tokenizer model to use for calculating token sizes, defaults to "gpt-3.5-turbo".
@@ -142,7 +142,7 @@ Args:
     item: The Markdown item to process.
     current_section: The current section being built as a list of strings.
     current_size: The current size of the section in GPT tokens.
-    md_sections: The list of sections (named tuples) being built.
+    md_sections: The list of sections (dicts with "md" and "gptok_size") being built.
 
 Returns:
     A tuple containing the updated current_section and the current_size.
@@ -163,7 +163,7 @@ Args:
     size: The size of the section in GPT tokens, defaults to None (automatically calculated).
 
 Returns:
-    A Section named tuple containing the prepared Markdown content and its size in tokens.
+    Dict with the prepared Markdown content as "md" and its size in tokens as "gptok_size".
 
 <a id="split_markdown4gpt.splitter.MarkdownLLMSplitter.process_md"></a>
 
@@ -182,7 +182,7 @@ Args:
     item: The Markdown item to process.
     current_section: The current section being built as a list of strings.
     current_size: The current size of the section in GPT tokens.
-    md_sections: The list of sections (named tuples) being built.
+    md_sections: The list of sections (dicts with "md" and "gptok_size") being built.
 
 Returns:
     A tuple containing the updated current_section and the current_size.
@@ -202,7 +202,7 @@ Args:
     md_dict: The Markdown dictionary to build sections from.
 
 Returns:
-    A list of sections (named tuples) containing the Markdown content and its size in tokens.
+    A list of sections (dicts) containing the Markdown content as "md" and its size in tokens as "gptok_size".
 
 <a id="split_markdown4gpt.splitter.MarkdownLLMSplitter.build"></a>
 
