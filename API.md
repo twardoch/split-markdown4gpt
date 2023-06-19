@@ -130,8 +130,10 @@ Returns:
 #### process\_item
 
 ```python
-def process_item(item: Dict, current_section: List[str], current_size: int,
-                 md_sections: List[Section]) -> Tuple[List[str], int]
+def process_item(
+        item: Dict, current_section: List[str], current_size: int,
+        md_sections: List[Dict[str, Union[str,
+                                          int]]]) -> Tuple[List[str], int]
 ```
 
 Processes an item in the Markdown dictionary and adds it to the appropriate section.
@@ -150,7 +152,8 @@ Returns:
 #### prep\_section
 
 ```python
-def prep_section(section_text: str, size: int = None) -> Section
+def prep_section(section_text: str,
+                 size: int = None) -> Dict[str, Union[str, int]]
 ```
 
 Prepares a section by removing excessive newlines and calculating the section size if not provided.
@@ -167,8 +170,10 @@ Returns:
 #### process\_md
 
 ```python
-def process_md(item: Dict, current_section: List[str], current_size: int,
-               md_sections: List[Section]) -> Tuple[List[str], int]
+def process_md(
+        item: Dict, current_section: List[str], current_size: int,
+        md_sections: List[Dict[str, Union[str,
+                                          int]]]) -> Tuple[List[str], int]
 ```
 
 Processes a Markdown item and adds it to the appropriate section.
@@ -187,7 +192,8 @@ Returns:
 #### get\_sections\_from\_md\_dict\_by\_limit
 
 ```python
-def get_sections_from_md_dict_by_limit(md_dict: Dict) -> List[Section]
+def get_sections_from_md_dict_by_limit(
+        md_dict: Dict) -> List[Dict[str, Union[str, int]]]
 ```
 
 Builds the sections from the provided Markdown dictionary by fitting the content within token limits.
