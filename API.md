@@ -2,6 +2,37 @@
 
 # split\_markdown4gpt
 
+<a id="split_markdown4gpt.__main__"></a>
+
+# split\_markdown4gpt.\_\_main\_\_
+
+<a id="split_markdown4gpt.__main__.split_md_file"></a>
+
+#### split\_md\_file
+
+```python
+def split_md_file(md_path: Union[str, Path],
+                  model: str = "gpt-3.5-turbo",
+                  limit: int = None,
+                  separator: str = "=== SPLIT ===") -> str
+```
+
+Splits a Markdown file into sections according to GPT token size limits.
+
+This tool loads a Markdown file, and splits its content into sections
+that are within the specified token size limit using the desired GPT tokenizing model. The resulting
+sections are then concatenated using the specified separator and returned as a single string.
+
+Args:
+    md_path: The path of the source Markdown file to be split.
+    model: The GPT tokenizer model to use for calculating token sizes. Defaults to "gpt-3.5-turbo".
+    limit: The maximum number of GPT tokens allowed per section. Defaults to the model's maximum tokens.
+    separator: The string used to separate sections in the output. Defaults to "=== SPLIT ===".
+
+Returns:
+    A single string containing the Markdown content of the file, split into sections and separated
+    by the specified separator.
+
 <a id="split_markdown4gpt.splitter"></a>
 
 # split\_markdown4gpt.splitter
@@ -295,35 +326,4 @@ Args:
 
 Returns:
     A list of strings with the Markdown content of each section.
-
-<a id="split_markdown4gpt.__main__"></a>
-
-# split\_markdown4gpt.\_\_main\_\_
-
-<a id="split_markdown4gpt.__main__.split_md_file"></a>
-
-#### split\_md\_file
-
-```python
-def split_md_file(md_path: Union[str, Path],
-                  model: str = "gpt-3.5-turbo",
-                  limit: int = None,
-                  separator: str = "=== SPLIT ===") -> str
-```
-
-Splits a Markdown file into sections according to GPT token size limits.
-
-This tool loads a Markdown file, and splits its content into sections
-that are within the specified token size limit using the desired GPT tokenizing model. The resulting
-sections are then concatenated using the specified separator and returned as a single string.
-
-Args:
-    md_path: The path of the source Markdown file to be split.
-    model: The GPT tokenizer model to use for calculating token sizes. Defaults to "gpt-3.5-turbo".
-    limit: The maximum number of GPT tokens allowed per section. Defaults to the model's maximum tokens.
-    separator: The string used to separate sections in the output. Defaults to "=== SPLIT ===".
-
-Returns:
-    A single string containing the Markdown content of the file, split into sections and separated
-    by the specified separator.
 
