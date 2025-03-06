@@ -1,6 +1,7 @@
-import pytest
 from pathlib import Path
-from split_markdown4gpt.splitter import MarkdownLLMSplitter, split
+
+from split_markdown4gpt.splitter import split
+
 
 def test_split():
     # Assuming you have a test.md file in your tests directory
@@ -8,4 +9,3 @@ def test_split():
     sections = split(md_path)
     assert isinstance(sections, list)
     assert all(isinstance(section, str) for section in sections)
-

@@ -1,4 +1,5 @@
 import sys
+
 from .splitter import MarkdownLLMSplitter, split
 
 if sys.version_info[:2] >= (3, 8):
@@ -15,4 +16,3 @@ except PackageNotFoundError:  # pragma: no cover
     __version__ = "unknown"
 finally:
     del version, PackageNotFoundError
-
