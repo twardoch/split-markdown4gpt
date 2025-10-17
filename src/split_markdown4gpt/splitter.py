@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import sys
 from collections import defaultdict
 from functools import lru_cache
 from io import TextIOWrapper
@@ -35,6 +36,12 @@ def meta_data(md: str) -> tuple:
 
 
 OPENAI_MODELS = {
+    "gpt-5": 400000,
+    "gpt-5-mini": 400000,
+    "gpt-5-nano": 400000,
+    "gpt-4.1": 1000000,
+    "gpt-4o": 128000,
+    "gpt-4-turbo": 128000,
     "gpt-4": 8192,
     "gpt-4-32k": 32768,
     "gpt-4-32k-0613": 32768,
@@ -70,7 +77,16 @@ class MarkdownLLMSplitter:
     def __init__(
         self, gptok_model: str = "gpt-3.5-turbo", gptok_limit: int = None
     ) -> None:
-        self.gptoker = tiktoken.encoding_for_model(gptok_model)
+        try:
+            self.gptoker = tiktoken.encoding_for_model(gptok_model)
+        except KeyError:
+            self.gptoker = tiktoken.get_encoding("cl100k_base")
+        if gptok_model not in OPENAI_MODELS:
+            print(
+                f"Warning: Model '{gptok_model}' not found in the list of known models. "
+                f"Token limits may be inaccurate.",
+                file=sys.stderr,
+            )
         self.gptok_limit = gptok_limit or OPENAI_MODELS.get(gptok_model, 2048)
         self.md_meta = {}
         self.md_str = ""
