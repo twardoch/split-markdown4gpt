@@ -1,117 +1,103 @@
-# split_markdown4gpt
+# split-markdown4gpt: split large Markdown for LLM context windows
 
-`split_markdown4gpt` is a Python tool designed to split large Markdown files into smaller sections based on a specified token limit. This is particularly useful for processing large Markdown files with GPT models, as it allows the models to handle the data in manageable chunks.
+LLMs have finite context windows. A 50,000-word documentation site won't fit in one API call. `split-markdown4gpt` breaks Markdown files into token-bounded chunks that respect document structure — so each chunk stays coherent rather than cutting mid-sentence or mid-section.
 
-_**Version 1.0.9** (2023-06-19)_
+## Why splitting matters
 
-## Installation
+Every LLM API call has a hard token limit (e.g. 4,096 tokens for GPT-3.5, 8,192 for GPT-4). Exceeding it raises an error. Naive character-based chunking cuts through sentences, code blocks, and headings — destroying context. This tool:
 
-You can install `split_markdown4gpt` via pip:
+1. Parses the Markdown AST (via `mistletoe`)
+2. Counts tokens using the same tokenizer the model uses (via `tiktoken`)
+3. Packs as many complete sections as fit within the limit
+4. When a single section exceeds the limit, falls back to sentence-level splitting (via `syntok`)
+
+The result: chunks that respect heading hierarchy, never split a sentence across chunks, and are as large as possible without exceeding the token budget.
+
+## Install
 
 ```bash
 pip install split_markdown4gpt
 ```
 
-## CLI Usage
-
-After installation, you can use the `mdsplit4gpt` command to split a Markdown file. Here's the basic syntax:
+## CLI
 
 ```bash
-mdsplit4gpt path_to_your_file.md --model gpt-3.5-turbo --limit 4096 --separator "=== SPLIT ==="
+mdsplit4gpt large_doc.md --model gpt-3.5-turbo --limit 4096 --separator "=== SPLIT ==="
 ```
 
-This command will split the Markdown file at `path_to_your_file.md` into sections, each containing no more than 4096 tokens (as counted by the `gpt-3.5-turbo` model). The sections will be separated by `=== SPLIT ===`.
+Outputs all sections joined by the separator. Redirect to a file or pipe to another tool.
 
-All CLI options:
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--model` | `gpt-3.5-turbo` | Tokenizer model (determines token counting) |
+| `--limit` | model max | Max tokens per chunk |
+| `--separator` | `=== SPLIT ===` | String inserted between chunks in output |
 
-```
-NAME
-    mdsplit4gpt - Splits a Markdown file into sections according to GPT token size limits.
-
-SYNOPSIS
-    mdsplit4gpt MD_PATH <flags>
-
-DESCRIPTION
-    This tool loads a Markdown file, and splits its content into sections
-    that are within the specified token size limit using the desired GPT tokenizing model. The resulting
-    sections are then concatenated using the specified separator and returned as a single string.
-
-POSITIONAL ARGUMENTS
-    MD_PATH
-        Type: Union
-        The path of the source Markdown file to be split.
-
-FLAGS
-    -m, --model=MODEL
-        Type: str
-        Default: 'gpt-3.5-turbo'
-        The GPT tokenizer model to use for calculating token sizes. Defaults to "gpt-3.5-turbo".
-    -l, --limit=LIMIT
-        Type: Optional[int]
-        Default: None
-        The maximum number of GPT tokens allowed per section. Defaults to the model's maximum tokens.
-    -s, --separator=SEPARATOR
-        Type: str
-        Default: '=== SPLIT ==='
-        The string used to separate sections in the output. Defaults to "=== SPLIT ===".
-```
-
-## Python Usage
-
-You can also use `split_markdown4gpt` in your Python code. Here's a basic example:
+## Python API
 
 ```python
 from split_markdown4gpt import split
 
-sections = split("path_to_your_file.md", model="gpt-3.5-turbo", limit=4096)
-for section in sections:
-    print(section)
+# Returns a list of Markdown strings, each within the token limit
+chunks = split("large_doc.md", model="gpt-3.5-turbo", limit=4096)
+
+for i, chunk in enumerate(chunks):
+    response = openai_client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": chunk}]
+    )
 ```
 
-This code does the same thing as the CLI command above, but in Python.
+Also accepts a string or file-like object:
 
-- **[See the API documentation](https://twardoch.github.io/split-markdown4gpt/API.html)** for more advanced usage
+```python
+chunks = split(markdown_string, model="gpt-4", limit=8000)
+chunks = split(open("doc.md"), limit=2000)
+```
 
-## How it Works
+## How it works
 
-`split_markdown4gpt` works by tokenizing the input Markdown file using the specified GPT model's tokenizer (default is `gpt-3.5-turbo`). It then splits the file into sections, each containing no more than the specified token limit.
+```
+split(md)
+  ├── meta_data()        strip YAML front matter
+  ├── MarkdownLLMSplitter.build_md_dict()
+  │     ├── mistletoe Document  parse Markdown AST
+  │     └── build dict tree keyed by heading level
+  ├── calculate_sizes()  count tokens recursively (cached with lru_cache)
+  └── get_sections_from_md_dict_by_limit()
+        ├── walk tree, accumulate blocks until limit reached
+        └── oversized blocks → sentence-split via syntok
+```
 
-The splitting process respects the structure of the Markdown file. It will not split a section (as defined by Markdown headings) across multiple output sections unless the section is longer than the token limit. In that case, it
+### `MarkdownLLMSplitter` class
 
-will split the section at the sentence level.
+```python
+from split_markdown4gpt import MarkdownLLMSplitter
 
-The tool uses several libraries to accomplish this:
+splitter = MarkdownLLMSplitter(gptok_model="gpt-4", gptok_limit=6000)
+splitter.load_md("doc.md")
+splitter.build()
 
-- `tiktoken` for tokenizing the text according to the GPT model's rules.
-- `fire` for creating the CLI.
-- `frontmatter` for parsing the Markdown file's front matter (metadata at the start of the file).
-- `mistletoe` for parsing the Markdown file into a syntax tree.
-- `syntok` for splitting the text into sentences.
-- `regex` and `PyYAML` for various utility functions.
+for section in splitter.gen_section_dicts():
+    print(section["gptok_size"], "tokens")
+    print(section["md"])
+```
 
-### Use Cases
+Methods: `load_md()`, `load_md_path()`, `load_md_str()`, `build()`, `list_section_texts()`, `list_section_dicts()`, `gen_section_texts()`, `gen_section_dicts()`, `split()`.
 
-`split_markdown4gpt` is particularly useful in scenarios where you need to process large Markdown files with GPT models. For instance:
+## Supported models
 
-- **Text Generation**: If you're using a GPT model to generate text based on a large Markdown file, you can use `split_markdown4gpt` to split the file into manageable sections. This allows the GPT model to process the file in chunks, preventing token overflow errors.
+Any model supported by `tiktoken`, including all `gpt-3.5-turbo` and `gpt-4` variants. The limit defaults to the model's published context window.
 
-- **Data Preprocessing**: In machine learning projects, you often need to preprocess your data before feeding it into your model. If your data is in the form of large Markdown files, `split_markdown4gpt` can help you split these files into smaller sections based on the token limit of your model.
+## Dependencies
 
-- **Document Analysis**: If you're analyzing large Markdown documents (e.g., extracting keywords, summarizing content), you can use `split_markdown4gpt` to break down the documents into smaller sections. This makes the analysis more manageable and efficient.
-
-## Changelog
-
-- v1.0.7: Switched the model for each section from namedtuple to dict
-- v1.0.6: Fixes
-- v1.0.0: Initial release
-
-## Contributing
-
-Contributions to `split_markdown4gpt` are welcome! Please open an issue or submit a pull request on the [GitHub repository](https://github.com/twardoch/split-markdown4gpt).
+- `tiktoken` — OpenAI-compatible token counting
+- `mistletoe` — Markdown AST parser
+- `syntok` — sentence segmentation for oversized sections
+- `frontmatter` — YAML front matter stripping
+- `fire` — CLI
+- `regex`, `PyYAML` — utilities
 
 ## License
 
-- Copyright (c) 2023 [Adam Twardoch](./AUTHORS.md)
-- Written with assistance from ChatGPT
-- Licensed under the [Apache License 2.0](./LICENSE.txt)<a id="split_markdown4gpt"></a>
-
+Apache License 2.0. Copyright © 2023 Adam Twardoch.

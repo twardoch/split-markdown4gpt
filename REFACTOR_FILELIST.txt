@@ -1,6 +1,0 @@
-14	./src/split_markdown4gpt/splitter.py
-11	./LICENSE.txt
-9	./API.md
-5	./README.md
-3	./tox.ini
-2	./setup.cfg

@@ -1,7 +1,3 @@
-<a id="split_markdown4gpt"></a>
-
-# split\_markdown4gpt
-
 <a id="split_markdown4gpt.splitter"></a>
 
 # split\_markdown4gpt.splitter
@@ -14,21 +10,21 @@
 class MarkdownLLMSplitter()
 ```
 
-A class to split Markdown files into sections according to GPT token size limits. Currently supports OpenAI models only, since it uses the `tiktoken` library for tokenization.
+Splits Markdown files into sections based on GPT token limits. Only supports OpenAI models via the `tiktoken` library.
 
 Attributes:
-    gptoker: GPT tokenizer instance used to calculate token sizes.
-    gptok_limit: The maximum number of GPT tokens allowed per section.
-    md_meta: Metadata found in the source Markdown file.
-    md_str: The source Markdown string.
-    md_doc: The parsed source Markdown document as a mistletoe Document instance.
-    md_dict: A dictionary representing the structure of the Markdown document.
-    md_path: The absolute path to the source Markdown file.
-    md_sections: List of sections (dicts) containing the Markdown content as "md" and its size in tokens as "gptok_size".
+    gptoker: GPT tokenizer instance.
+    gptok_limit: Maximum tokens per section.
+    md_meta: Metadata from the Markdown file.
+    md_str: Source Markdown content.
+    md_doc: Parsed Markdown document.
+    md_dict: Structured representation of the document.
+    md_path: Path to the source file.
+    md_sections: List of sections with content and token counts.
 
 Args:
-    gptok_model: The GPT tokenizer model to use for calculating token sizes, defaults to "gpt-3.5-turbo".
-    gptok_limit: The maximum number of GPT tokens allowed per section, defaults to the model's maximum tokens.
+    gptok_model: Tokenizer model, defaults to "gpt-3.5-turbo".
+    gptok_limit: Token limit per section, defaults to model's maximum.
 
 <a id="split_markdown4gpt.splitter.MarkdownLLMSplitter.load_md_path"></a>
 
@@ -38,10 +34,10 @@ Args:
 def load_md_path(md_path: Union[Path, str]) -> None
 ```
 
-Load a Markdown file from a file path.
+Load Markdown from file path.
 
 Args:
-    md_path: The file path to the source Markdown file.
+    md_path: Path to Markdown file.
 
 <a id="split_markdown4gpt.splitter.MarkdownLLMSplitter.load_md_file"></a>
 
@@ -51,10 +47,10 @@ Args:
 def load_md_file(md_file: TextIOWrapper) -> None
 ```
 
-Load a Markdown file from a file-like object.
+Load Markdown from file object.
 
 Args:
-    md_file: The file-like object containing the source Markdown content.
+    md_file: File-like object with Markdown content.
 
 <a id="split_markdown4gpt.splitter.MarkdownLLMSplitter.load_md_str"></a>
 
@@ -64,10 +60,10 @@ Args:
 def load_md_str(md_str: str) -> None
 ```
 
-Load a Markdown file from a string.
+Load Markdown from string.
 
 Args:
-    md_str: The source Markdown content as a string.
+    md_str: Markdown content string.
 
 <a id="split_markdown4gpt.splitter.MarkdownLLMSplitter.load_md"></a>
 
@@ -77,10 +73,10 @@ Args:
 def load_md(md: Union[str, Path, TextIOWrapper]) -> None
 ```
 
-Load a Markdown file from a string, file path, or file-like object.
+Load Markdown from string, path, or file object.
 
 Args:
-    md: The source Markdown content, can be a string, file path or file-like object.
+    md: Markdown source (string, path, or file object).
 
 <a id="split_markdown4gpt.splitter.MarkdownLLMSplitter.gpttok_size"></a>
 
@@ -91,13 +87,13 @@ Args:
 def gpttok_size(text: str) -> int
 ```
 
-Calculates the number of GPT tokens in a text string.
+Count GPT tokens in text.
 
 Args:
-    text: The text string to calculate the token size.
+    text: Input text.
 
 Returns:
-    The number of GPT tokens in the text string.
+    Number of tokens.
 
 <a id="split_markdown4gpt.splitter.MarkdownLLMSplitter.build_md_dict"></a>
 
@@ -107,7 +103,7 @@ Returns:
 def build_md_dict() -> None
 ```
 
-Builds a dictionary representing the structure of the source Markdown document.
+Parse Markdown into structured dictionary.
 
 <a id="split_markdown4gpt.splitter.MarkdownLLMSplitter.calculate_sizes"></a>
 
@@ -117,13 +113,13 @@ Builds a dictionary representing the structure of the source Markdown document.
 def calculate_sizes(md_dict: Dict) -> int
 ```
 
-Recursively calculates the total size of GPT tokens in the provided Markdown dictionary.
+Calculate total tokens in Markdown structure.
 
 Args:
-    md_dict: The Markdown dictionary to calculate token sizes.
+    md_dict: Structured Markdown dictionary.
 
 Returns:
-    The total number of GPT tokens in the Markdown dictionary.
+    Total token count.
 
 <a id="split_markdown4gpt.splitter.MarkdownLLMSplitter.process_item"></a>
 
@@ -136,16 +132,16 @@ def process_item(
                                           int]]]) -> Tuple[List[str], int]
 ```
 
-Processes an item in the Markdown dictionary and adds it to the appropriate section.
+Add item to section within token limits.
 
 Args:
-    item: The Markdown item to process.
-    current_section: The current section being built as a list of strings.
-    current_size: The current size of the section in GPT tokens.
-    md_sections: The list of sections (dicts with "md" and "gptok_size") being built.
+    item: Markdown element.
+    current_section: Current section content.
+    current_size: Current section token count.
+    md_sections: List of completed sections.
 
 Returns:
-    A tuple containing the updated current_section and the current_size.
+    Updated section and token count.
 
 <a id="split_markdown4gpt.splitter.MarkdownLLMSplitter.prep_section"></a>
 
@@ -156,14 +152,14 @@ def prep_section(section_text: str,
                  size: int = None) -> Dict[str, Union[str, int]]
 ```
 
-Prepares a section by removing excessive newlines and calculating the section size if not provided.
+Clean section text and calculate token size.
 
 Args:
-    section_text: The Markdown content of the section.
-    size: The size of the section in GPT tokens, defaults to None (automatically calculated).
+    section_text: Markdown content.
+    size: Token count (optional).
 
 Returns:
-    Dict with the prepared Markdown content as "md" and its size in tokens as "gptok_size".
+    Section dictionary with content and size.
 
 <a id="split_markdown4gpt.splitter.MarkdownLLMSplitter.process_md"></a>
 
@@ -176,16 +172,16 @@ def process_md(
                                           int]]]) -> Tuple[List[str], int]
 ```
 
-Processes a Markdown item and adds it to the appropriate section.
+Process Markdown item into sections.
 
 Args:
-    item: The Markdown item to process.
-    current_section: The current section being built as a list of strings.
-    current_size: The current size of the section in GPT tokens.
-    md_sections: The list of sections (dicts with "md" and "gptok_size") being built.
+    item: Markdown element.
+    current_section: Current section content.
+    current_size: Current section token count.
+    md_sections: List of completed sections.
 
 Returns:
-    A tuple containing the updated current_section and the current_size.
+    Updated section and token count.
 
 <a id="split_markdown4gpt.splitter.MarkdownLLMSplitter.get_sections_from_md_dict_by_limit"></a>
 
@@ -196,13 +192,13 @@ def get_sections_from_md_dict_by_limit(
         md_dict: Dict) -> List[Dict[str, Union[str, int]]]
 ```
 
-Builds the sections from the provided Markdown dictionary by fitting the content within token limits.
+Split Markdown structure into token-limited sections.
 
 Args:
-    md_dict: The Markdown dictionary to build sections from.
+    md_dict: Structured Markdown content.
 
 Returns:
-    A list of sections (dicts) containing the Markdown content as "md" and its size in tokens as "gptok_size".
+    List of section dictionaries.
 
 <a id="split_markdown4gpt.splitter.MarkdownLLMSplitter.build"></a>
 
@@ -212,7 +208,7 @@ Returns:
 def build() -> None
 ```
 
-Builds the sections by processing the loaded Markdown document.
+Generate sections from loaded Markdown.
 
 <a id="split_markdown4gpt.splitter.MarkdownLLMSplitter.list_section_dicts"></a>
 
@@ -222,10 +218,10 @@ Builds the sections by processing the loaded Markdown document.
 def list_section_dicts() -> List[Dict[str, Union[str, int]]]
 ```
 
-Returns a list of section dictionaries containing the Markdown content and its size.
+Return list of section dictionaries.
 
 Returns:
-    A list of dictionaries with keys 'md' and 'size'.
+    List with 'md' and 'size' keys.
 
 <a id="split_markdown4gpt.splitter.MarkdownLLMSplitter.gen_section_dicts"></a>
 
@@ -235,7 +231,7 @@ Returns:
 def gen_section_dicts() -> Generator[Dict[str, Union[str, int]], None, None]
 ```
 
-Generator that yields section dictionaries containing the Markdown content and its size.
+Yield section dictionaries.
 
 <a id="split_markdown4gpt.splitter.MarkdownLLMSplitter.list_section_texts"></a>
 
@@ -245,10 +241,10 @@ Generator that yields section dictionaries containing the Markdown content and i
 def list_section_texts() -> List[str]
 ```
 
-Returns a list of section texts containing the Markdown content.
+Return list of section texts.
 
 Returns:
-    A list of strings with the Markdown content of each section.
+    Markdown content strings.
 
 <a id="split_markdown4gpt.splitter.MarkdownLLMSplitter.gen_section_texts"></a>
 
@@ -258,7 +254,7 @@ Returns:
 def gen_section_texts() -> Generator[str, None, None]
 ```
 
-Generator that yields the Markdown content of each section.
+Yield section texts.
 
 <a id="split_markdown4gpt.splitter.MarkdownLLMSplitter.split"></a>
 
@@ -268,13 +264,13 @@ Generator that yields the Markdown content of each section.
 def split(md: Union[str, Path, TextIOWrapper]) -> List[str]
 ```
 
-Splits the loaded Markdown document into sections according to the GPT token size limits.
+Split Markdown into token-limited sections.
 
 Args:
-    md: The source Markdown content, can be a string, file path or file-like object.
+    md: Source content (string, path, or file object).
 
 Returns:
-    A list of strings with the Markdown content of each section.
+    List of section strings.
 
 <a id="split_markdown4gpt.splitter.split"></a>
 
@@ -286,15 +282,15 @@ def split(md: Union[str, Path, TextIOWrapper],
           limit: int = None) -> List[str]
 ```
 
-A utility function to split a Markdown document into sections according to GPT token size limits.
+Split Markdown document into sections.
 
 Args:
-    md: The source Markdown content, can be a string, file path or file-like object.
-    model: The GPT tokenizer model to use for calculating token sizes, defaults to "gpt-3.5-turbo".
-    limit: The maximum number of GPT tokens allowed per section, defaults to the model's maximum tokens.
+    md: Source content.
+    model: Tokenizer model, defaults to "gpt-3.5-turbo".
+    limit: Token limit per section.
 
 Returns:
-    A list of strings with the Markdown content of each section.
+    List of section strings.
 
 <a id="split_markdown4gpt.__main__"></a>
 
@@ -311,19 +307,13 @@ def split_md_file(md_path: Union[str, Path],
                   separator: str = "=== SPLIT ===") -> str
 ```
 
-Splits a Markdown file into sections according to GPT token size limits.
-
-This tool loads a Markdown file, and splits its content into sections
-that are within the specified token size limit using the desired GPT tokenizing model. The resulting
-sections are then concatenated using the specified separator and returned as a single string.
+Split Markdown file into sections.
 
 Args:
-    md_path: The path of the source Markdown file to be split.
-    model: The GPT tokenizer model to use for calculating token sizes. Defaults to "gpt-3.5-turbo".
-    limit: The maximum number of GPT tokens allowed per section. Defaults to the model's maximum tokens.
-    separator: The string used to separate sections in the output. Defaults to "=== SPLIT ===".
+    md_path: Source file path.
+    model: Tokenizer model, defaults to "gpt-3.5-turbo".
+    limit: Token limit per section.
+    separator: Section separator string.
 
 Returns:
-    A single string containing the Markdown content of the file, split into sections and separated
-    by the specified separator.
-
+    Concatenated sections separated by delimiter.
