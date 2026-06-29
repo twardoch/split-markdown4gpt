@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 from pathlib import Path
-from typing import Union
 
 import fire
 
 from .splitter import MarkdownLLMSplitter
 
+
 def split_md_file(
-    md_path: Union[str, Path],
+    md_path: str | Path,
     model: str = "gpt-3.5-turbo",
     limit: int = None,
     separator: str = "=== SPLIT ===",

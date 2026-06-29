@@ -1,18 +1,30 @@
-import sys
+# this_file: src/split_markdown4gpt/__init__.py
+"""split-markdown4gpt: Split large Markdown files into token-bounded chunks.
+
+LLMs have finite context windows.  This package breaks Markdown documents
+into sections that fit within a specified token budget, respecting heading
+hierarchy and never cutting mid-sentence.
+
+Typical usage::
+
+    from split_markdown4gpt import split
+
+    chunks = split("large_doc.md", model="gpt-4", limit=6000)
+    for chunk in chunks:
+        send_to_llm(chunk)
+
+See :mod:`split_markdown4gpt.splitter` for the full API.
+"""
+
+from __future__ import annotations
+
+from importlib.metadata import PackageNotFoundError, version
+
 from .splitter import MarkdownLLMSplitter, split
 
-if sys.version_info[:2] >= (3, 8):
-    # TODO: Import directly (no need for conditional) when `python_requires = >= 3.8`
-    from importlib.metadata import PackageNotFoundError, version  # pragma: no cover
-else:
-    from importlib_metadata import PackageNotFoundError, version  # pragma: no cover
-
 try:
-    # Change here if project is renamed and does not equal the package name
-    dist_name = __name__
-    __version__ = version(dist_name)
-except PackageNotFoundError:  # pragma: no cover
+    __version__: str = version("split_markdown4gpt")
+except PackageNotFoundError:
     __version__ = "unknown"
-finally:
-    del version, PackageNotFoundError
 
+__all__ = ["split", "MarkdownLLMSplitter", "__version__"]

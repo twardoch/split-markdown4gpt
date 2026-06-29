@@ -1,9 +1,131 @@
 [build-system]
-# AVOID CHANGING REQUIRES: IT WILL BE UPDATED BY PYSCAFFOLD!
-requires = ["setuptools>=46.1.0", "setuptools_scm[toml]>=5"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
 
-[tool.setuptools_scm]
-# For smarter version schemes and other configuration options,
-# check out https://github.com/pypa/setuptools_scm
-version_scheme = "no-guess-dev"
+[project]
+name = "split_markdown4gpt"
+description = "Split large Markdown files into token-bounded chunks for LLM context windows"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Adam Twardoch", email = "adam+github@twardoch.com" }]
+keywords = [
+    "python",
+    "nlp",
+    "markdown",
+    "natural-language-processing",
+    "text-analysis",
+    "openai",
+    "text-summarization",
+    "summarization",
+    "text-processing",
+    "gpt",
+    "data-preprocessing",
+    "mistletoe",
+    "split-text",
+    "text-tokenization",
+    "openai-gpt",
+    "gpt-3",
+    "gpt-4",
+    "llm",
+    "context-window",
+    "chunking",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Topic :: Text Processing",
+    "Topic :: Text Processing :: Markup :: Markdown",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "fire>=0.5.0",
+    "mistletoe>=1.1.0",
+    "python-frontmatter>=1.0.0",
+    "PyYAML>=5.1",
+    "regex>=2023.6.3",
+    "syntok>=1.4.4",
+    "tiktoken>=0.4.0",
+]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/twardoch/split-markdown4gpt"
+Documentation = "https://twardoch.github.io/split-markdown4gpt/"
+Source = "https://github.com/twardoch/split-markdown4gpt"
+"Bug Tracker" = "https://github.com/twardoch/split-markdown4gpt/issues"
+
+[project.optional-dependencies]
+testing = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+]
+docs = [
+    "mkdocs-material>=9.0",
+    "mkdocstrings[python]>=0.20",
+]
+
+[project.scripts]
+mdsplit4gpt = "split_markdown4gpt.__main__:cli"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/split_markdown4gpt/_version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/split_markdown4gpt"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/tests",
+    "/docs",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE.txt",
+]
+
+[tool.hatch.envs.default]
+dependencies = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.4.0",
+    "mypy>=1.8",
+]
+
+[tool.hatch.envs.default.scripts]
+test = "pytest {args:tests}"
+test-cov = "pytest --cov=split_markdown4gpt --cov-report=term-missing {args:tests}"
+lint = ["ruff check --fix .", "ruff format ."]
+typecheck = "mypy src/split_markdown4gpt"
+
+[tool.pytest.ini_options]
+addopts = "--verbose"
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "UP", "B", "C4", "N"]
+ignore = ["E501", "B019"]  # B019: lru_cache on method is intentional here
+
+[tool.ruff.lint.isort]
+known-first-party = ["split_markdown4gpt"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = false
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
