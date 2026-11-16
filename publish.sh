@@ -1,22 +1,38 @@
 #!/usr/bin/env bash
-# publish.sh: Build, install, version, and publish split-markdown4gpt to PyPI
-# split_markdown4gpt: Split Markdown files into chunks for GPT context windows
+# this_file: publish.sh
+#
+# Release split-markdown4gpt: asks GitHub Actions (.github/workflows/release.yml) to
+# create the tag, build, cut a GitHub release, then publish to PyPI through
+# Trusted Publishing. No PyPI token is needed locally.
+#
+# Usage: ./publish.sh            # next patch after the latest vX.Y.Z tag
+#        ./publish.sh v1.4.0     # explicit tag
+# The tag is made on the HEAD of the remote default branch, so push first.
 
 set -euo pipefail
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
+cd "$(dirname "${BASH_SOURCE[0]}")"
 
-echo "=== Build ==="
-bash "$SCRIPT_DIR/build.sh"
+REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner)"
+BRANCH="$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name)"
+git fetch -q --tags origin
 
-echo "=== Install ==="
-bash "$SCRIPT_DIR/install.sh"
+TAG="${1:-}"
+if [[ -z "$TAG" ]]; then
+  last="$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n1)"
+  IFS=. read -r major minor patch <<<"${last#v}"
+  TAG="v${major:-0}.${minor:-0}.$((${patch:-0} + 1))"
+fi
+if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "error: '$TAG' is not a vMAJOR.MINOR.PATCH tag" >&2
+  exit 1
+fi
 
-echo "=== Version bump ==="
-uvx gitnextver@latest
+if [[ "$(git rev-parse HEAD)" != "$(git rev-parse "origin/$BRANCH")" ]]; then
+  echo "warning: local HEAD differs from origin/$BRANCH; the release is cut from origin/$BRANCH" >&2
+fi
 
-echo "=== Final build & publish ==="
-uvx hatch build
-uv publish
-
-echo "=== Publish complete ==="
+echo "Releasing $REPO $TAG from $BRANCH"
+gh workflow run release.yml -R "$REPO" --ref "$BRANCH" -f tag="$TAG"
+sleep 5
+gh run list -R "$REPO" --workflow release.yml -L 1
+echo "Follow it with: gh run watch -R $REPO"
