@@ -43,8 +43,7 @@ chunks = split("large_doc.md", model="gpt-3.5-turbo", limit=4096)
 
 for i, chunk in enumerate(chunks):
     response = openai_client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": chunk}]
+        model="gpt-3.5-turbo", messages=[{"role": "user", "content": chunk}]
     )
 ```
 

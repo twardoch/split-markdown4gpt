@@ -50,16 +50,16 @@ from split_markdown4gpt import MarkdownLLMSplitter
 splitter = MarkdownLLMSplitter(gptok_model="gpt-4", gptok_limit=6000)
 
 # Load content
-splitter.load_md("doc.md")        # from path
-splitter.load_md_str(md_string)   # from string
-splitter.load_md_file(file_obj)   # from file object
+splitter.load_md("doc.md")  # from path
+splitter.load_md_str(md_string)  # from string
+splitter.load_md_file(file_obj)  # from file object
 
 # Build sections
 splitter.build()
 
 # Access results
-texts = splitter.list_section_texts()   # list[str]
-dicts = splitter.list_section_dicts()   # list[{"md": str, "gptok_size": int}]
+texts = splitter.list_section_texts()  # list[str]
+dicts = splitter.list_section_dicts()  # list[{"md": str, "gptok_size": int}]
 
 # Or use generators
 for text in splitter.gen_section_texts():
@@ -75,6 +75,7 @@ Any model supported by `tiktoken`, including all `gpt-3.5-turbo` and `gpt-4` var
 
 ```python
 from split_markdown4gpt.splitter import OPENAI_MODELS
+
 print(OPENAI_MODELS)
 # {"gpt-4": 8192, "gpt-4-turbo": 128000, "gpt-4o": 128000, ...}
 ```
@@ -94,7 +95,10 @@ for chunk in chunks:
     response = client.chat.completions.create(
         model="gpt-4",
         messages=[
-            {"role": "system", "content": "Summarise the following documentation section."},
+            {
+                "role": "system",
+                "content": "Summarise the following documentation section.",
+            },
             {"role": "user", "content": chunk},
         ],
     )
@@ -110,6 +114,6 @@ Front matter is automatically stripped before chunking. Metadata is available on
 ```python
 splitter = MarkdownLLMSplitter()
 splitter.load_md("doc.md")
-print(splitter.md_meta)   # {"title": "...", "author": "..."}
+print(splitter.md_meta)  # {"title": "...", "author": "..."}
 splitter.build()
 ```
